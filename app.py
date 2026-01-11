@@ -7,12 +7,12 @@ import numpy as np
 # 設定頁面配置
 st.set_page_config(
     page_title="網路行銷分析儀表板",
-    page_icon="📊",
+    page_icon="",
     layout="wide"
 )
 
 # 標題
-st.title("📊 網路行銷數據分析儀表板")
+st.title("網路行銷數據分析儀表板")
 st.markdown("### AI 協作行銷分析工具")
 
 # 側邊欄
@@ -41,10 +41,19 @@ if data_option == "使用示範資料":
     df = generate_demo_data()
     st.sidebar.success("✅ 已載入示範資料（最近30天）")
 # 日期範圍篩選
+# 日期範圍篩選
 st.sidebar.markdown("---")
-st.sidebar.subheader("📅 日期範圍篩選")
-min_date = df['日期'].min().date()
-max_date = df['日期'].max().date()
+st.sidebar.subheader("日期範圍篩選")
+
+# 檢查是否有日期欄位
+if '日期' in df.columns:
+    # 確保日期格式正確
+    df['日期'] = pd.to_datetime(df['日期'], errors='coerce')
+    min_date = df['日期'].min().date()
+    max_date = df['日期'].max().date()
+else:
+    st.sidebar.error("上傳的檔案缺少「日期」欄位")
+    st.stop()
 
 date_range = st.sidebar.date_input(
     "選擇分析日期範圍：",
@@ -65,13 +74,13 @@ else:
             df = pd.read_csv(uploaded_file)
         else:
             df = pd.read_excel(uploaded_file)
-        st.sidebar.success("✅ 檔案上傳成功！")
+        st.sidebar.success("檔案上傳成功！")
     else:
-        st.info("👈 請從左側上傳資料檔案，或使用示範資料")
+        st.info("請從左側上傳資料檔案，或使用示範資料")
         st.stop()
 
 # 顯示資料概覽
-st.subheader("📋 資料概覽")
+st.subheader("資料概覽")
 col1, col2, col3, col4 = st.columns(4)
 
 with col1:
@@ -85,7 +94,7 @@ with col4:
     st.metric("平均轉換率", f"{avg_conversion:.2f}%")
 
 # 趨勢圖表
-st.subheader("📈 流量趨勢分析")
+st.subheader("流量趨勢分析")
 
 # 訪客數趨勢
 fig_visitors = px.line(
@@ -123,11 +132,11 @@ with col2:
     st.plotly_chart(fig_bounce, use_container_width=True)
 
 # 顯示原始資料
-with st.expander("🔍 查看原始資料"):
+with st.expander("查看原始資料"):
     st.dataframe(df, use_container_width=True)
 
 # AI 預測功能
-st.subheader("🤖 AI 流量預測")
+st.subheader("AI 流量預測")
 st.markdown("使用簡單線性迴歸預測未來7天流量趨勢")
 
 # 預測未來7天
@@ -187,9 +196,9 @@ with col2:
     st.metric("未來7天預測平均訪客數", f"{avg_forecast:,}")
     
     # 趨勢判斷
-    trend = "上升 📈" if predictions[-1] > predictions[0] else "下降 📉"
+    trend = "上升" if predictions[-1] > predictions[0] else "下降"
     st.metric("預測趨勢", trend)
 
 # 頁尾
 st.markdown("---")
-st.markdown("💡 **AI 協作說明**：此儀表板透過與 Claude AI 協作開發完成")
+st.markdown(" **AI 協作說明**：此儀表板透過與 Claude AI 協作開發完成")
