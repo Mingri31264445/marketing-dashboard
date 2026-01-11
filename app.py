@@ -40,33 +40,26 @@ def generate_demo_data():
 if data_option == "使用示範資料":
     df = generate_demo_data()
     st.sidebar.success("✅ 已載入示範資料（最近30天）")
-# 日期範圍篩選
-# 日期範圍篩選
-st.sidebar.markdown("---")
-st.sidebar.subheader("日期範圍篩選")
 
-# 檢查是否有日期欄位
-if '日期' in df.columns:
-    # 確保日期格式正確
-    df['日期'] = pd.to_datetime(df['日期'], errors='coerce')
+    # 日期範圍篩選
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("日期範圍篩選")
     min_date = df['日期'].min().date()
     max_date = df['日期'].max().date()
-else:
-    st.sidebar.error("上傳的檔案缺少「日期」欄位")
-    st.stop()
 
-date_range = st.sidebar.date_input(
-    "選擇分析日期範圍：",
-    value=(min_date, max_date),
-    min_value=min_date,
-    max_value=max_date
-)
+    date_range = st.sidebar.date_input(
+        "選擇分析日期範圍：",
+        value=(min_date, max_date),
+        min_value=min_date,
+        max_value=max_date
+    )
 
-# 根據選擇的日期篩選資料
-if len(date_range) == 2:
-    start_date, end_date = date_range
-    df = df[(df['日期'].dt.date >= start_date) & (df['日期'].dt.date <= end_date)]
-    st.sidebar.info(f"已篩選：{len(df)} 天的資料")
+    # 根據選擇的日期篩選資料
+    if len(date_range) == 2:
+        start_date, end_date = date_range
+        df = df[(df['日期'].dt.date >= start_date) & (df['日期'].dt.date <= end_date)]
+        st.sidebar.info(f"已篩選：{len(df)} 天的資料")
+
 else:
     uploaded_file = st.sidebar.file_uploader("上傳 CSV 或 Excel 檔案", type=['csv', 'xlsx'])
     if uploaded_file:
@@ -75,6 +68,38 @@ else:
         else:
             df = pd.read_excel(uploaded_file)
         st.sidebar.success("檔案上傳成功！")
+
+        # 檢查必要欄位
+        required_columns = ['日期', '訪客數', '頁面瀏覽數', '轉換次數', '跳出率']
+        missing_columns = [col for col in required_columns if col not in df.columns]
+        
+        if missing_columns:
+            st.sidebar.error(f"缺少必要欄位：{', '.join(missing_columns)}")
+            st.info("請確保上傳的檔案包含以下欄位：日期、訪客數、頁面瀏覽數、轉換次數、跳出率")
+            st.stop()
+        
+        # 轉換日期格式
+        df['日期'] = pd.to_datetime(df['日期'], errors='coerce')
+
+        # 日期範圍篩選
+        st.sidebar.markdown("---")
+        st.sidebar.subheader("日期範圍篩選")
+        min_date = df['日期'].min().date()
+        max_date = df['日期'].max().date()
+        
+        date_range = st.sidebar.date_input(
+            "選擇分析日期範圍：",
+            value=(min_date, max_date),
+            min_value=min_date,
+            max_value=max_date
+        )
+        
+        # 根據選擇的日期篩選資料
+        if len(date_range) == 2:
+            start_date, end_date = date_range
+            df = df[(df['日期'].dt.date >= start_date) & (df['日期'].dt.date <= end_date)]
+            st.sidebar.info(f"已篩選：{len(df)} 天的資料")
+
     else:
         st.info("請從左側上傳資料檔案，或使用示範資料")
         st.stop()
